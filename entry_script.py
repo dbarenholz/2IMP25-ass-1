@@ -1,32 +1,43 @@
+#!/usr/bin/env python3
+
 import csv
 import sys
 
-
-
-
-
 def write_output_file():
-    '''
-    Writes a dummy output file using the python csv writer, update this 
-    to accept as parameter the found trace links. 
-    '''
+    """
+    Writes the output to a file using the python csv writer.
+
+    Input:
+        None.
+    Output:
+        None.
+
+    TODO: Update `write_output_file()` to accept found trace links as parameter.
+    TODO: Update `write_output_file()` to use filename parameter.
+    TODO: Update `write_output_file()` code documentation.
+    """
+    
+    # Dummy code from template repository.
     with open('/output/links.csv', 'w') as csvfile:
-
         writer = csv.writer(csvfile, delimiter=",", quotechar="\"", quoting=csv.QUOTE_MINIMAL)
-
-
         fieldnames = ["id", "links"]
-
         writer.writerow(fieldnames)
-
         writer.writerow(["UC1", "L1, L34, L5"]) 
         writer.writerow(["UC2", "L5, L4"]) 
 
 
 if __name__ == "__main__":
-    '''
-    Entry point for the script
-    '''
+    """
+    Entry point for the script.
+
+    Input:
+        None.
+    Output:
+        None.
+
+    TODO: Update `__main__` documentation.
+    """
+
     if len(sys.argv) < 2:
         print("Please provide an argument to indicate which matcher should be used")
         exit(1)
