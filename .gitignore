@@ -1,7 +1,7 @@
 ## Own gitignore
 # VSCode proprietary folder settings.
 .vscode
-output/*
+output
 
 ## Copied from template direcotory
 # Byte-compiled / optimized / DLL files
