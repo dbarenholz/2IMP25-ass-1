@@ -1,0 +1,2 @@
+docker build -t 2imp25-assignment-1 ./
+docker run --rm -v "$pwd\dataset-1:/input" -v "$pwd\output:/output" 2imp25-assignment-1 1
