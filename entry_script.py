@@ -1,30 +1,5 @@
 #!/usr/bin/env python3
-
-import csv
-import sys
-
-def write_output_file():
-    """
-    Writes the output to a file using the python csv writer.
-
-    Input:
-        None.
-    Output:
-        None.
-
-    TODO: Update `write_output_file()` to accept found trace links as parameter.
-    TODO: Update `write_output_file()` to use filename parameter.
-    TODO: Update `write_output_file()` code documentation.
-    """
-    
-    # Dummy code from template repository.
-    with open('/output/links.csv', 'w') as csvfile:
-        writer = csv.writer(csvfile, delimiter=",", quotechar="\"", quoting=csv.QUOTE_MINIMAL)
-        fieldnames = ["id", "links"]
-        writer.writerow(fieldnames)
-        writer.writerow(["UC1", "L1, L34, L5"]) 
-        writer.writerow(["UC2", "L5, L4"]) 
-
+from helpers import retrieve_match_type
 
 if __name__ == "__main__":
     """
@@ -37,30 +12,16 @@ if __name__ == "__main__":
 
     TODO: Update `__main__` documentation.
     """
+    low_csv_in = r'/input/low.csv'
+    high_csv_in = r'/input/high.csv'
 
-    if len(sys.argv) < 2:
-        print("Please provide an argument to indicate which matcher should be used")
-        exit(1)
+    match_type, match_type_explanation = retrieve_match_type()
 
-    match_type = 0
-
-    try:
-        match_type = int(sys.argv[1])
-    except ValueError as e:
-        print("Match type provided is not a valid number")
-        exit(1)    
-
-    print(f"Hello world, running with matchtype {match_type}!")
-
-    # Read input low-level requirements and count them (ignore header line).
-    with open("/input/low.csv", "r") as inputfile:
-        print(f"There are {len(inputfile.readlines()) - 1} low-level requirements")
-
-
+    
     '''
     This is where you should implement the trace level logic as discussed in the 
     assignment on Canvas. Please ensure that you take care to deliver clean,
     modular, and well-commented code.
     '''
 
-    write_output_file()
+    # write_output_file()
