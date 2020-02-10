@@ -4,13 +4,13 @@ from preprocessing import *
 
 import sys
 
-# TODO @ Jens: Check if you agree with how I do this.
+# Retrieves match type from system arguments
 def retrieve_match_type() -> Tuple[int, str]:
     """ 
     Retrieves match type from system arguments
     """
 
-    # Dictionary.
+    # Dictionary relating integer with type of matching to be used.
     match_type_dict = {
         0: "No filtering.",
         1: "Similarity of at least .25.",
@@ -18,13 +18,13 @@ def retrieve_match_type() -> Tuple[int, str]:
         3: "Your own custom technique."
     }
 
-    # Check if we have an argument.
+    # Check if we have an(y) argument(s).
     if len(sys.argv) < 2:
-        # No argument: Print error line and exit.
+        # No argument(s): Print error line and exit.
         print("Please provide an argument to indicate which matcher should be used")
         exit(1)
 
-    # Attempt to parse argument if present
+    # Attempt to parse argument(s) if present
     match_type = 0
     try:
         match_type = int(sys.argv[1])
@@ -37,19 +37,54 @@ def retrieve_match_type() -> Tuple[int, str]:
     print(f"Using match type {match_type}: {match_type_dict[match_type]}")
     return match_type, match_type_dict[match_type]
 
+# Reads CSV files (including headers)
+def read_csv(path: str) -> List[str]:
+    """
+    Reads a csv file located at path, and returns a list of items.
+    Exits on errors.
+    """
+    import csv
+
+    # Create lines list
+    lines = []
+
+    # Attempt to open the path
+    try:
+        with open(path, 'r') as f:
+            # Create a default reader from the file
+            reader = csv.reader(f)
+            # Attempt to read each line.
+            try:
+                for row in reader:
+                    lines.append(row)
+            except csv.Error as e:
+                sys.exit(f'Error reading line {reader.line_num} from file at {path}:\n{e}')
+    except Exception as err:
+        sys.exit(f'Something went wrong during CSV reading.\n{err}')
+    return lines
+
 # Perform pre processing steps for sentences
-def preprocess(sentences: List[str]) -> List[List[str]]:
-    # Tokenise
-    tokenised = tokenize(sentences)
+def preprocess(csv: str) -> List[List[str]]:
+    """
+    Preprocesses a csv for use in the program.
     
-    # Filter out stop words
-    filtered = remove_stop_words(tokenised)
-    
-    # Stem remaining words
-    stemmed = stem(filtered)
-    
-    # Return
-    return stemmed
+    See also:
+        `stem()`
+        `remove_stop_words()`
+        `tokenize()`
+    """
+    # Download necessary nltk resources
+    from nltk import download
+    download('punkt')
+
+    # Dictionary comprehension on result from read_csv
+    d = {k: v for (k, v) in read_csv(csv)[1:]}
+
+    # Perform necessary preprocessing steps on each requirement
+    for k, v in d.items():
+        d[k] = stem(remove_stop_words(tokenize(v)))
+
+    return d
 
 # TODO: Write this function.
 def write_output_file():
