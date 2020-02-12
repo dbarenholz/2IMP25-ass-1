@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from helpers import retrieve_match_type, preprocess, retrieve_master_vocab, get_vector_representation, compute_similarity_matrix, get_linked_requirements
+from helpers import preprocess, retrieve_master_vocab, get_vector_representation, compute_similarity_matrix, get_linked_requirements
 from input_output import write_csv
 
 if __name__ == "__main__":
@@ -12,9 +12,6 @@ if __name__ == "__main__":
         terminal: Some helpful messages on the usage of the program.
         files: a `links.csv` file in `/output` containing the links found, based on the match_type.
     """
-    # Retrieve current match type
-    match_type, match_type_explanation = retrieve_match_type()
-
     # Read in high and low level requirements from CSV
     low_csv_in = r'/input/low.csv'       # CSV file containing low level requirements.
     high_csv_in = r'/input/high.csv'     # CSV file containing high level requirements.
@@ -36,7 +33,7 @@ if __name__ == "__main__":
     similarity = compute_similarity_matrix(high_level, low_level, vectors)
 
     # Link requirements based on match_type
-    linked_requirements = get_linked_requirements(match_type, similarity, high_level, low_level)
+    linked_requirements = get_linked_requirements(similarity, high_level, low_level)
 
     # Write linked requirements to output file
     links_output = r'/output/links.csv'  # CSV file that will contain the outputted links

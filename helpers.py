@@ -1,32 +1,26 @@
 """
-Module for helper functions specific to the assignment.
-
+Module for helper functions specific to this assignment.
+Contains various methods.
 """
-
-from typing import Tuple, Dict, Set
-from preprocessing import *
-from input_output import read_csv
 import sys
 import numpy as np
+from typing import Tuple, Dict, Set
 
-# Retrieves match type from system arguments
-def retrieve_match_type() -> Tuple[int, str]:
+from preprocessing import *
+from input_output import read_csv
+
+
+# === Private Methods === #
+
+
+def __retrieve_match_type() -> Tuple[int, str]:
     """ 
     Retrieves match type from system arguments
     """
-
-    # Dictionary relating integer with type of matching to be used.
-    match_type_dict = {
-        0: "No filtering.",
-        1: "Similarity of at least .25.",
-        2: "Similarity of at least .67 of the most similar low level requirement.",
-        3: "Your own custom technique."
-    }
-
     # Check if we have an(y) argument(s).
     if len(sys.argv) < 2:
         # No argument(s): Print error line and exit.
-        print("Please provide an argument to indicate which matcher should be used")
+        print("ERROR! retrieve_match_type(): Please provide an argument to indicate which matcher should be used")
         exit(1)
 
     # Attempt to parse argument(s) if present
@@ -35,38 +29,93 @@ def retrieve_match_type() -> Tuple[int, str]:
         match_type = int(sys.argv[1])
     except ValueError as e:
         # Problem parsing argument as number
-        print("Match type provided is not a valid number")
+        print("ERROR! retrieve_match_type(): Match type provided is not a valid number")
         print(e)
         exit(1)
+
+    # Check if match_type is allowed
+    allowed_match_types = list(range(0, 4))
+    if match_type not in allowed_match_types:
+        print("WARN! retrieve_match_type(): Match type not defined. Using default type (1)")
+        match_type = 1
     
     # We have a match_type!
-    print(f"Using match type {match_type}: {match_type_dict[match_type]}")
-    return match_type, match_type_dict[match_type]
+    return match_type
 
-# Perform pre processing steps for sentences
+def __precompute_d(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> Dict[str, int]:
+    """
+    Computes d according to its formula (tf*idf) for use in computing a vector representation
+    """
+    d = {k : v for k, v in zip(vocabulary, len(vocabulary)*[0])}
+
+    for requirement in requirements.values():
+        for token in vocabulary:
+            if token in requirement:
+                d[token] = d[token] + 1
+
+    return d
+
+def __update_vector_repr(vocabulary: Set[str], requirements: Dict[str, List[str]], d: Dict[str, int]) -> Dict[str, List[float]]:
+    """
+    Converts a placeholder requirements dictionary with its actual vector representation.
+    """
+    # For each item in the placeholder dictionary (with wrong values)
+    for (req_id, req_tokens) in requirements.items():
+        # Create a list for the correct values
+        req_vec = []
+
+        # Loop over the master vocabulary
+        for token in vocabulary:
+            # Check if the token is in the requirement itself (req_tokens)
+            if token not in req_tokens:
+                # If the token IS NOT in the requirement: w_i = 0
+                req_vec.append(0)
+            else:                
+                # frequency of ith word of master vocab (=token) in r (=req_tokens)
+                tf = req_tokens.count(token)
+
+                # log_2 (n / d); casting is done just in case, to prevent integer division 
+                idf = np.log2(float(len(requirements)) / d[token])
+
+                # If the token IS in the requirement: w_i = tf * idf
+                req_vec.append(tf * idf)
+        # Update vector representation with correct values
+        requirements[req_id] = req_vec
+    return requirements
+
+def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+    """
+    Computes and the cosine similarity between two vectors, a and b.
+    """
+    return float(np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b)))
+
+
+# === Public Methods === #
+
 def preprocess(csv: str) -> List[List[str]]:
     """
     Preprocesses a csv for use in the program.
     
     See also:
-        `stem()`
-        `remove_stop_words()`
-        `tokenize()`
+        `__stem()`
+        `__remove_stop_words()`
+        `__tokenize()`
     """
     # Download necessary nltk resources
     from nltk import download
     download('punkt')
 
-    # Dictionary comprehension on result from read_csv
+    # Create dictionary for a CSV file.
+    # The header row is skipped ([1:])
     d = {r_id: text for (r_id, text) in read_csv(csv)[1:]}
 
-    # Perform necessary preprocessing steps on each requirement
-    for r_id, text in d.items():
+    # Perform necessary preprocessing steps on each requirement sentence
+    for (r_id, text) in d.items():
         d[r_id] = stem(remove_stop_words(tokenize(text)))
 
+    # Return the finalised dictionary
     return d
 
-# Creates vocabulary list given various dictionaries
 def retrieve_master_vocab(*args: Dict[str, List[str]]) -> List[str]:
     """
     Given any number of dictionaries of following form:
@@ -86,124 +135,76 @@ def retrieve_master_vocab(*args: Dict[str, List[str]]) -> List[str]:
     # Return a complete list of tokens
     return tokens
 
-# Private method to precompute d
-def __precompute_d(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> Dict[str, int]:
-    """
-    Computes d according to the provided scheme.
-    """
-    d = {k : v for k, v in zip(vocabulary, len(vocabulary)*[0])}
-
-    for requirement in requirements.values():
-        for token in vocabulary:
-            if token in requirement:
-                d[token] = d[token] + 1
-
-    return d
-
-def __update_vector_repr(vocabulary: Set[str], requirements: Dict[str, List[str]], d: Dict[str, int]) -> Dict[str, List[float]]:
-    """
-    TODO
-    """
-    # For each item in the created dictionary (with wrong values)
-    for (req_id, req_tokens) in requirements.items():
-        # Create a list for the correct values
-        req_vec = []
-
-        # Loop over the master vocabulary
-        for token in vocabulary:
-            # Check if the token is in the requirement itself (req_tokens)
-            if token not in req_tokens:
-                # If the token is not in the requirement: w_i = 0
-                req_vec.append(0)
-            else:
-                # If the token IS in the requirement: w_i = tf * idf
-                
-                # frequency of ith word (=token) of master vocab in r (=req_tokens)
-                tf = req_tokens.count(token)
-
-                # log_2 (n / d) 
-                idf = np.log2( float(len(requirements)) / d[token])
-
-                req_vec.append(tf * idf)
-        # Update vector representation with correct values
-        requirements[req_id] = req_vec
-    return requirements
-
 def get_vector_representation(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> Dict[str, List[float]]:
     """
-    TODO
+    Given a vocabulary and set of requirements, computes and returns its vector representation.
     """
     d = __precompute_d(vocabulary, requirements)
     return __update_vector_repr(vocabulary, requirements, d)
 
-def get_cosine_similarity(a, b):
-    return np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
-
-def compute_similarity_matrix(high_level, low_level, vectors):
+def compute_similarity_matrix(high_level: Dict[str, List[str]], low_level: Dict[str, List[str]], vectors: Dict[str, List[float]]) -> np.ndarray:
+    """
+    Computes a cosine similarity matrix between high level and low level requirements.
+    """
+    # Create initial matrix of size (amount high level reqs * amount low level reqs)
     matrix = np.zeros((len(high_level), len(low_level)), dtype=np.float64)
 
-    rows = matrix.shape[0] # ignore vscode error
-    cols = matrix.shape[1] # ignore vscode error
+    # Loop through the created placeholder matrix, and fill it with the cosine similarity
+    rows = matrix.shape[0]
+    cols = matrix.shape[1]
 
     for i in range(0, rows):
         for j in range(0, cols):
+            # Retrieve the high and low level requirements keys, needed for finding the corresponding vectors.
             hkey = list(high_level.keys()) [i]
             lkey = list(low_level.keys()) [j]
-            matrix[i, j] = get_cosine_similarity(vectors[hkey], vectors[lkey])
+            matrix[i, j] = __get_cosine_similarity(vectors[hkey], vectors[lkey])
 
+    # Return the computed matrix
     return matrix
 
-def get_linked_requirements(match_type, similarity, high_level, low_level):
+def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[str]], low_level: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """
+    Compute and return links between requirements, based on matching type.
+    """
+    # Retrieve current match type
+    match_type = __retrieve_match_type()
+
+    # Dictionary relating integer with type of matching to be used.
+    match_type_dict = {
+        0: ["No filtering.", 0.0],
+        1: ["Similarity of at least .25.", 0.25],
+        2: ["Similarity of at least .67 of the most similar low level requirement.", 0.67],
+        3: ["Your own custom technique."]
+    }
+    
+    # Log the type of filtering to be used
+    print(f"INFO! get_linked_requirements(): Using match type {match_type}: {match_type_dict[match_type][0]}")
+
     # Create links structure
     links = {hkey: [] for hkey in high_level.keys()}
-    if match_type == 0:
-        # no filtering: similarity > 0 --> link reqs
 
-        rows = similarity.shape[0] # ignore vscode error
-        cols = similarity.shape[1] # ignore vscode error
+    # Loop over similarity matrix
+    rows = similarity.shape[0] 
+    cols = similarity.shape[1]
 
-        for i in range(0, rows):
-            for j in range(0, cols):
-                hkey = list(high_level.keys()) [i]
-                lkey = list(low_level.keys()) [j]
-                if similarity[i, j] > 0:
-                    print(f"hkey: {hkey}")
-                    print(f"lkey: {lkey}")
+    for i in range(0, rows):
+        # Compute max_similarity for match_type == 2
+        max_similarity = max(similarity[i])
+
+        for j in range(0, cols):
+            # Retrieve keys for later usage
+            hkey = list(high_level.keys())[i]
+            lkey = list(low_level.keys())[j]
+            
+            # Add links based on match-type
+            if match_type == 0 or match_type == 1:
+                if similarity[i, j] > match_type_dict[match_type][1]:
                     links[hkey].append(lkey)
-                    print(f"Added: {links[hkey]}")
-
-
-    elif match_type == 1:
-        # similarity > 0.25 --> link reqs
-        rows = similarity.shape[0] # ignore vscode error
-        cols = similarity.shape[1] # ignore vscode error
-
-        for i in range(0, rows):
-            for j in range(0, cols):
-                hkey = list(high_level.keys()) [i]
-                lkey = list(low_level.keys()) [j]
-                if similarity[i, j] > 0.25:
+            elif match_type == 2:
+                if similarity[i, j] > match_type_dict[match_type][1] * max_similarity:
                     links[hkey].append(lkey)
-    elif match_type == 2: 
-        # similarity > (0.67 * highest similarity) per high_level requirement --> link reqs
-        rows = similarity.shape[0] # ignore vscode error
-        cols = similarity.shape[1] # ignore vscode error
-
-        for i in range(0, rows):
-
-            max_similarity = max(similarity[i])
-
-            for j in range(0, cols):
-                hkey = list(high_level.keys()) [i]
-                lkey = list(low_level.keys()) [j]
-                if similarity[i, j] > 0.67 * max_similarity:
-                    links[hkey].append(lkey)
-
-    elif match_type == 3:
-        rows = similarity.shape[0] # ignore vscode error
-        # custom choice
-        for i in range(0, rows):
-            hkey = list(high_level.keys()) [i]
-            links[hkey].append("todo")
-
+            else:
+                # No own implementation, yet.
+                pass
     return links
