@@ -33,16 +33,15 @@ def read_csv(path: str) -> List[str]:
     return lines
 
 
-# TODO: Write this function.
-def write_csv():
+def write_csv(path, links):
     """
     Writes the output to a file using the python csv writer.
     """
-    pass
-    # # Dummy code from template repository.
-    # with open('/output/links.csv', 'w') as csvfile:
-    #     writer = csv.writer(csvfile, delimiter=",", quotechar="\"", quoting=csv.QUOTE_MINIMAL)
-    #     fieldnames = ["id", "links"]
-    #     writer.writerow(fieldnames)
-    #     writer.writerow(["UC1", "L1, L34, L5"]) 
-    #     writer.writerow(["UC2", "L5, L4"]) 
+    try:
+        fieldnames = ["id", "links"]
+        with open(path, 'w') as f:
+            writer = csv.writer(f, delimiter=',', quoting=csv.QUOTE_ALL)
+            writer.writerow(fieldnames)
+            writer.writerows([k, ','.join(v)] for (k , v) in links.items())
+    except Exception as err:
+        sys.exit(f'Something went wrong during CSV writing.\n{err}')
