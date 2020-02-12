@@ -78,11 +78,11 @@ def preprocess(csv: str) -> List[List[str]]:
     download('punkt')
 
     # Dictionary comprehension on result from read_csv
-    d = {k: v for (k, v) in read_csv(csv)[1:]}
+    d = {r_id: text for (r_id, text) in read_csv(csv)[1:]}
 
     # Perform necessary preprocessing steps on each requirement
-    for k, v in d.items():
-        d[k] = stem(remove_stop_words(tokenize(v)))
+    for r_id, text in d.items():
+        d[r_id] = stem(remove_stop_words(tokenize(text)))
 
     return d
 
