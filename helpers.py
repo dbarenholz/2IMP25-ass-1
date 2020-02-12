@@ -1,7 +1,10 @@
+"""
+Module for helper functions specific to the assignment.
+
+"""
+
 from typing import Tuple
-
 from preprocessing import *
-
 import sys
 
 # Retrieves match type from system arguments
@@ -37,32 +40,6 @@ def retrieve_match_type() -> Tuple[int, str]:
     print(f"Using match type {match_type}: {match_type_dict[match_type]}")
     return match_type, match_type_dict[match_type]
 
-# Reads CSV files (including headers)
-def read_csv(path: str) -> List[str]:
-    """
-    Reads a csv file located at path, and returns a list of items.
-    Exits on errors.
-    """
-    import csv
-
-    # Create lines list
-    lines = []
-
-    # Attempt to open the path
-    try:
-        with open(path, 'r') as f:
-            # Create a default reader from the file
-            reader = csv.reader(f)
-            # Attempt to read each line.
-            try:
-                for row in reader:
-                    lines.append(row)
-            except csv.Error as e:
-                sys.exit(f'Error reading line {reader.line_num} from file at {path}:\n{e}')
-    except Exception as err:
-        sys.exit(f'Something went wrong during CSV reading.\n{err}')
-    return lines
-
 # Perform pre processing steps for sentences
 def preprocess(csv: str) -> List[List[str]]:
     """
@@ -85,17 +62,3 @@ def preprocess(csv: str) -> List[List[str]]:
         d[r_id] = stem(remove_stop_words(tokenize(text)))
 
     return d
-
-# TODO: Write this function.
-def write_output_file():
-    """
-    Writes the output to a file using the python csv writer.
-    """
-    pass
-    # # Dummy code from template repository.
-    # with open('/output/links.csv', 'w') as csvfile:
-    #     writer = csv.writer(csvfile, delimiter=",", quotechar="\"", quoting=csv.QUOTE_MINIMAL)
-    #     fieldnames = ["id", "links"]
-    #     writer.writerow(fieldnames)
-    #     writer.writerow(["UC1", "L1, L34, L5"]) 
-    #     writer.writerow(["UC2", "L5, L4"]) 
