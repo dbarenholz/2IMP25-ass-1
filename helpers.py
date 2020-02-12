@@ -5,6 +5,7 @@ Module for helper functions specific to the assignment.
 
 from typing import Tuple
 from preprocessing import *
+from io import read_csv
 import sys
 
 # Retrieves match type from system arguments
