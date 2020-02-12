@@ -150,8 +150,8 @@ def compute_similarity_matrix(high_level: Dict[str, List[str]], low_level: Dict[
     matrix = np.zeros((len(high_level), len(low_level)), dtype=np.float64)
 
     # Loop through the created placeholder matrix, and fill it with the cosine similarity
-    rows = matrix.shape[0]
-    cols = matrix.shape[1]
+    rows = matrix.shape[0] # pylint: disable=E1136  # pylint/issues/3139
+    cols = matrix.shape[1] # pylint: disable=E1136  # pylint/issues/3139
 
     for i in range(0, rows):
         for j in range(0, cols):
