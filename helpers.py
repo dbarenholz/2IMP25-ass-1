@@ -186,7 +186,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
         0: ["No filtering.", 0.0],
         1: ["Similarity of at least .25.", 0.25],
         2: ["Similarity of at least .67 of the most similar low level requirement.", 0.67],
-        3: ["Your own custom technique."]
+        3: ["Your own custom technique.", 0.25, 0.67]
     }
 
     # Log the type of filtering to be used
@@ -200,7 +200,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
     cols = similarity.shape[1]
 
     for i in range(0, rows):
-        # Compute max_similarity for match_type == 2
+        # Compute max_similarity for match_type == 2 and match_type == 3
         max_similarity = max(similarity[i])
 
         for j in range(0, cols):
@@ -209,15 +209,18 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
             lkey = list(low_level.keys())[j]
 
             # Add links based on match-type
-            if match_type == 0 or match_type == 1:
-                if similarity[i, j] > match_type_dict[match_type][1]:
+            if match_type == 1:
+                if similarity[i, j] >= match_type_dict[match_type][1]:
                     links[hkey].append(lkey)
             elif match_type == 2:
-                if similarity[i, j] > match_type_dict[match_type][1] * max_similarity:
+                if similarity[i, j] >= match_type_dict[match_type][1] * max_similarity:
+                    links[hkey].append(lkey)
+            elif match_type == 3:
+                if (max_similarity >= match_type_dict[match_type][1] and similarity[i, j] >= match_type_dict[match_type][2] * max_similarity):
                     links[hkey].append(lkey)
             else:
-                # No own implementation, yet.
-                pass
+                if similarity[i, j] > match_type_dict[match_type][1]:
+                    links[hkey].append(lkey)
 
     return links
 
