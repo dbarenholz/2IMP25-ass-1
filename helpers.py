@@ -226,14 +226,23 @@ def get_links_expert(expert_path: str) -> Dict[str, List[str]]:
     """
     Reads csv and construct proper links from experts
     """
+    # Create dictionary for a CSV file.
+    # The header row is skipped ([1:])
     links_expert = {r_id: text for (r_id, text) in read_csv(expert_path)[1:]}
 
+    # Fill dictionary
     for (r_id, text) in links_expert.items():
+        # Create list of seperate links
         strList = text.split(',')
+
+        # Remove leading and trailing whitespace of all list items
         for i in range(0, len(strList)):
             strList[i] = strList[i].strip()
+
+        # Set dictionary value equal to list
         links_expert[r_id] = strList
 
+    # Return the resulting dictionary
     return links_expert
 
 
@@ -284,16 +293,17 @@ def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert:
         if (len(nidnprSet) != 0):
             nidnpr[r_id] = nidnprSet
 
+    # Return the 4 resulting dictionaries
     return (idpr, idnpr, nidpr, nidnpr)
 
 def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]], nidpr: Dict[str, List[str]], nidnpr: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (int, int, int, int):
     """
     Computes counts of the dictionary used in evaluation
     """
-    #Initialize counts
+    # Initialize counts
     idprCount, idnprCount, nidprCount, nidnprCount = 0, 0, 0, 0
 
-    # Loop over all known high_level requirements
+    # Loop over all known high_level requirements adding the length of the list to corresponding count if the requirement exists in the corresponding dictionary
     for (r_id) in high_level.keys():
         if (r_id in idpr.keys()):
             idprCount = idprCount + len(idpr[r_id])
@@ -307,4 +317,5 @@ def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]
         if (r_id in nidnpr.keys()):
             nidnprCount = nidnprCount + len(nidnpr[r_id])
 
+    # Return the 4 resulting counts
     return (idprCount, idnprCount, nidprCount, nidnprCount)
