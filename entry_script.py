@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from helpers import preprocess, retrieve_master_vocab, get_vector_representation, compute_similarity_matrix, get_linked_requirements
+from helpers import preprocess, retrieve_master_vocab, get_vector_representation, compute_similarity_matrix, get_linked_requirements, get_links_expert, get_evaluation_sets, get_evaluation_counts
 from input_output import write_csv
 
 if __name__ == "__main__":
@@ -38,3 +38,21 @@ if __name__ == "__main__":
     # Write linked requirements to output file
     links_output = r'/output/links.csv'  # CSV file that will contain the outputted links
     write_csv(links_output, linked_requirements)
+
+    # Read expert links
+    expert_path = r'/input/links.csv'
+    links_expert = get_links_expert(expert_path)
+
+    idpr, idnpr, nidpr, nidnpr = get_evaluation_sets(linked_requirements, links_expert, low_level, high_level)
+
+    # print("idpr: " + str(idpr))
+    # print("idnpr: " + str(idnpr))
+    # print("nidpr: " + str(nidpr))
+    # print("nidnpr: " + str(nidnpr))
+
+    idprCount, idnprCount, nidprCount, nidnprCount = get_evaluation_counts(idpr, idnpr, nidpr, nidnpr, high_level)
+
+    print("Indicated + Predicted: " + str(idprCount))
+    print("Indicated + Not Predicted: " + str(idnprCount))
+    print("Not Indicated + Predicted: " + str(nidprCount))
+    print("Not Indicated + Not Predicted: " + str(nidnprCount))

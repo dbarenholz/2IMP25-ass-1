@@ -42,6 +42,7 @@ def __retrieve_match_type() -> Tuple[int, str]:
     # We have a match_type!
     return match_type
 
+
 def __precompute_d(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> Dict[str, int]:
     """
     Computes d according to its formula (tf*idf) for use in computing a vector representation
@@ -54,6 +55,7 @@ def __precompute_d(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> 
                 d[token] = d[token] + 1
 
     return d
+
 
 def __update_vector_repr(vocabulary: Set[str], requirements: Dict[str, List[str]], d: Dict[str, int]) -> Dict[str, List[float]]:
     """
@@ -83,6 +85,7 @@ def __update_vector_repr(vocabulary: Set[str], requirements: Dict[str, List[str]
         requirements[req_id] = req_vec
     return requirements
 
+
 def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     """
     Computes and the cosine similarity between two vectors, a and b.
@@ -91,6 +94,7 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 
 
 # === Public Methods === #
+
 
 def preprocess(csv: str) -> List[List[str]]:
     """
@@ -116,6 +120,7 @@ def preprocess(csv: str) -> List[List[str]]:
     # Return the finalised dictionary
     return d
 
+
 def retrieve_master_vocab(*args: Dict[str, List[str]]) -> List[str]:
     """
     Given any number of dictionaries of following form:
@@ -135,12 +140,14 @@ def retrieve_master_vocab(*args: Dict[str, List[str]]) -> List[str]:
     # Return a complete list of tokens
     return tokens
 
+
 def get_vector_representation(vocabulary: Set[str], requirements: Dict[str, List[str]]) -> Dict[str, List[float]]:
     """
     Given a vocabulary and set of requirements, computes and returns its vector representation.
     """
     d = __precompute_d(vocabulary, requirements)
     return __update_vector_repr(vocabulary, requirements, d)
+
 
 def compute_similarity_matrix(high_level: Dict[str, List[str]], low_level: Dict[str, List[str]], vectors: Dict[str, List[float]]) -> np.ndarray:
     """
@@ -162,6 +169,7 @@ def compute_similarity_matrix(high_level: Dict[str, List[str]], low_level: Dict[
 
     # Return the computed matrix
     return matrix
+
 
 def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[str]], low_level: Dict[str, List[str]]) -> Dict[str, List[str]]:
     """
@@ -208,3 +216,90 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
                 # No own implementation, yet.
                 pass
     return links
+
+
+def get_links_expert(expert_path: str) -> Dict[str, List[str]]:
+    """
+    Reads csv and construct proper links from experts
+    """
+    links_expert = {r_id: text for (r_id, text) in read_csv(expert_path)[1:]}
+    for (r_id, text) in links_expert.items():
+        strList = text.split(',')
+        newStrList = []
+        for (s) in strList:
+            newStrList.append(s.strip())
+        links_expert[r_id] = newStrList
+    return links_expert
+        
+
+def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert: Dict[str, List[str]], low_level: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]):
+    """
+    Performs evaluation on indicated and predicted links
+    First is Indicated + Predicted, Second is Indicated + Not Predicted, Third is Not Indicated + Predicted, Fourth is Not Indicated + Not Predicted
+    """
+    # Initialize dictionaries
+    idpr, idnpr, nidpr, nidnpr = {}, {}, {}, {}
+
+    # Loop over all known high_level requirements
+    for (r_id) in high_level.keys():
+        # High level key cannot be found in either indicated or predicted links
+        if (r_id not in links_expert.keys() and r_id not in linked_requirements.keys()):
+            nidnpr[r_id] = list(filter(None, set(low_level.keys())))
+            continue
+
+        # High level key cannot be found in indicated links but is present in predicted links
+        if (r_id not in links_expert.keys()):
+            nidpr[r_id] = list(filter(None, set(linked_requirements[r_id])))
+            nidnpr[r_id] = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id])))
+            continue
+
+        # High level key cannot be found in predicted links but is present in indicated links
+        if (r_id not in linked_requirements.keys()):
+            idnpr[r_id] = list(filter(None, set(links_expert[r_id])))
+            nidnpr[r_id] = list(filter(None, set(low_level.keys()) - set(links_expert[r_id])))
+            continue
+
+        # Calculate indicated + predicted by taking intersection of values in expert and values in calculated links
+        idprSet = list(filter(None, set(links_expert[r_id]).intersection(set(linked_requirements[r_id]))))
+        if (len(idprSet) != 0):
+            idpr[r_id] = idprSet
+
+        # Calculate indicated + not predicted by removing predicted from indicated
+        idnprSet = list(filter(None, set(links_expert[r_id]) - set(linked_requirements[r_id])))
+        if (len(idnprSet) != 0):
+            idnpr[r_id] = idnprSet
+
+        # Calculate not indicated + predicted by removing indicated from predicted
+        nidprSet = list(filter(None, set(linked_requirements[r_id]) - set(links_expert[r_id])))
+        if (len(nidprSet) != 0):
+            nidpr[r_id] = nidprSet
+
+        # Calculate not indicated + not predicted by removing union of values in expert and values in calculted links from the set of all low level keys
+        nidnprSet = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id]).union(set(links_expert[r_id]))))
+        if (len(nidnprSet) != 0):
+            nidnpr[r_id] = nidnprSet
+
+    return (idpr, idnpr, nidpr, nidnpr)
+
+def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]], nidpr: Dict[str, List[str]], nidnpr: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (int, int, int, int):
+    """
+    Computes counts of the dictionary used in evaluation
+    """
+    #Initialize counts
+    idprCount, idnprCount, nidprCount, nidnprCount = 0, 0, 0, 0
+
+    # Loop over all known high_level requirements
+    for (r_id) in high_level.keys():
+        if (r_id in idpr.keys()):
+            idprCount = idprCount + len(idpr[r_id])
+
+        if (r_id in idnpr.keys()):
+            idnprCount = idnprCount + len(idnpr[r_id])
+
+        if (r_id in nidpr.keys()):
+            nidprCount = nidprCount + len(nidpr[r_id])
+
+        if (r_id in nidnpr.keys()):
+            nidnprCount = nidnprCount + len(nidnpr[r_id])
+
+    return (idprCount, idnprCount, nidprCount, nidnprCount)
