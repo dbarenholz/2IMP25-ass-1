@@ -19,11 +19,11 @@ def tokenize(sentence: str) -> List[str]:
     # Check if we have a list
     if not isinstance(sentence, str):
         exit(f"ERROR! tokenize(): Parameter sentences has type {type(sentence)} but expected {type(str)}")
-    
+
     if sentence == "":
         print(f"INFO! tokenize(): Parameter sentences is empty. Will return empty list.")
         return []
-    
+
     # Only import word_tokenize if we actually need to tokenise things
     from nltk import word_tokenize
 
@@ -41,7 +41,7 @@ def remove_stop_words(tokens: List[str]) -> List[str]:
     """
     # Create filtering set for removing stop words
     filter_set = set()
-    
+
     # Read stopwords from file
     with open('/stopwords.txt', 'r') as f:
         for word in f.readlines():

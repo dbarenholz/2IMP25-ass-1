@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     # Retrieve the master vocabulary
     master_vocab = set(retrieve_master_vocab(low_level, high_level))
-    
+
     # Create requirements dictionary
     requirements = {**low_level, **high_level} # Python 3.5+ syntax for joining dictionaries properly.
 

@@ -14,7 +14,7 @@ from input_output import read_csv
 
 
 def __retrieve_match_type() -> Tuple[int, str]:
-    """ 
+    """
     Retrieves match type from system arguments
     """
     # Check if we have an(y) argument(s).
@@ -38,7 +38,7 @@ def __retrieve_match_type() -> Tuple[int, str]:
     if match_type not in allowed_match_types:
         print("WARN! retrieve_match_type(): Match type not defined. Using default type (1)")
         match_type = 1
-    
+
     # We have a match_type!
     return match_type
 
@@ -72,17 +72,18 @@ def __update_vector_repr(vocabulary: Set[str], requirements: Dict[str, List[str]
             if token not in req_tokens:
                 # If the token IS NOT in the requirement: w_i = 0
                 req_vec.append(0)
-            else:                
+            else:
                 # frequency of ith word of master vocab (=token) in r (=req_tokens)
                 tf = req_tokens.count(token)
 
-                # log_2 (n / d); casting is done just in case, to prevent integer division 
+                # log_2 (n / d); casting is done just in case, to prevent integer division
                 idf = np.log2(float(len(requirements)) / d[token])
 
                 # If the token IS in the requirement: w_i = tf * idf
                 req_vec.append(tf * idf)
         # Update vector representation with correct values
         requirements[req_id] = req_vec
+
     return requirements
 
 
@@ -99,7 +100,7 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 def preprocess(csv: str) -> List[List[str]]:
     """
     Preprocesses a csv for use in the program.
-    
+
     See also:
         `__stem()`
         `__remove_stop_words()`
@@ -137,6 +138,7 @@ def retrieve_master_vocab(*args: Dict[str, List[str]]) -> List[str]:
         # Extend the token list with all values
         for item in d.values():
             tokens.extend(item)
+
     # Return a complete list of tokens
     return tokens
 
@@ -146,6 +148,7 @@ def get_vector_representation(vocabulary: Set[str], requirements: Dict[str, List
     Given a vocabulary and set of requirements, computes and returns its vector representation.
     """
     d = __precompute_d(vocabulary, requirements)
+
     return __update_vector_repr(vocabulary, requirements, d)
 
 
@@ -185,7 +188,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
         2: ["Similarity of at least .67 of the most similar low level requirement.", 0.67],
         3: ["Your own custom technique."]
     }
-    
+
     # Log the type of filtering to be used
     print(f"INFO! get_linked_requirements(): Using match type {match_type}: {match_type_dict[match_type][0]}")
 
@@ -193,7 +196,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
     links = {hkey: [] for hkey in high_level.keys()}
 
     # Loop over similarity matrix
-    rows = similarity.shape[0] 
+    rows = similarity.shape[0]
     cols = similarity.shape[1]
 
     for i in range(0, rows):
@@ -204,7 +207,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
             # Retrieve keys for later usage
             hkey = list(high_level.keys())[i]
             lkey = list(low_level.keys())[j]
-            
+
             # Add links based on match-type
             if match_type == 0 or match_type == 1:
                 if similarity[i, j] > match_type_dict[match_type][1]:
@@ -215,6 +218,7 @@ def get_linked_requirements(similarity: np.ndarray, high_level: Dict[str, List[s
             else:
                 # No own implementation, yet.
                 pass
+
     return links
 
 
@@ -223,14 +227,15 @@ def get_links_expert(expert_path: str) -> Dict[str, List[str]]:
     Reads csv and construct proper links from experts
     """
     links_expert = {r_id: text for (r_id, text) in read_csv(expert_path)[1:]}
+
     for (r_id, text) in links_expert.items():
         strList = text.split(',')
-        newStrList = []
-        for (s) in strList:
-            newStrList.append(s.strip())
-        links_expert[r_id] = newStrList
+        for i in range(0, len(strList)):
+            strList[i] = strList[i].strip()
+        links_expert[r_id] = strList
+
     return links_expert
-        
+
 
 def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert: Dict[str, List[str]], low_level: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]):
     """
