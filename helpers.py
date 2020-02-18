@@ -97,7 +97,7 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 # === Public Methods === #
 
 
-def preprocess(csv: str) -> List[List[str]]:
+def preprocess(csv: str) -> Dict[List[str]]:
     """
     Preprocesses a csv for use in the program.
 
