@@ -45,10 +45,10 @@ if __name__ == "__main__":
 
     idpr, idnpr, nidpr, nidnpr = get_evaluation_sets(linked_requirements, links_expert, low_level, high_level)
 
-    # print("idpr: " + str(idpr))
-    # print("idnpr: " + str(idnpr))
-    # print("nidpr: " + str(nidpr))
-    # print("nidnpr: " + str(nidnpr))
+    # print("Indicated + Predicted: " + str(idpr))
+    # print("Indicated + Not Predicted: " + str(idnpr))
+    # print("Not Indicated + Predicted: " + str(nidpr))
+    # print("Not Indicated + Not Predicted: " + str(nidnpr))
 
     idprCount, idnprCount, nidprCount, nidnprCount = get_evaluation_counts(idpr, idnpr, nidpr, nidnpr, high_level)
 

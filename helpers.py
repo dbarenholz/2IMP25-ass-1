@@ -97,7 +97,7 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 # === Public Methods === #
 
 
-def preprocess(csv: str) -> Dict[List[str]]:
+def preprocess(csv: str) -> Dict[str, List[str]]:
     """
     Preprocesses a csv for use in the program.
 
@@ -261,19 +261,31 @@ def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert:
     for (r_id) in high_level.keys():
         # High level key cannot be found in either indicated or predicted links
         if (r_id not in links_expert.keys() and r_id not in linked_requirements.keys()):
-            nidnpr[r_id] = list(filter(None, set(low_level.keys())))
+            nidnprSet = list(filter(None, set(low_level.keys())))
+            if (len(nidnprSet) != 0):
+                nidnpr[r_id] = nidnprSet
             continue
 
         # High level key cannot be found in indicated links but is present in predicted links
         if (r_id not in links_expert.keys()):
-            nidpr[r_id] = list(filter(None, set(linked_requirements[r_id])))
-            nidnpr[r_id] = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id])))
+            nidprSet = list(filter(None, set(linked_requirements[r_id])))
+            if (len(nidprSet) != 0):
+                nidpr[r_id] = nidprSet
+
+            nidnprSet = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id])))
+            if (len(nidnprSet) != 0):
+                nidnpr[r_id] = nidnprSet
             continue
 
         # High level key cannot be found in predicted links but is present in indicated links
         if (r_id not in linked_requirements.keys()):
-            idnpr[r_id] = list(filter(None, set(links_expert[r_id])))
-            nidnpr[r_id] = list(filter(None, set(low_level.keys()) - set(links_expert[r_id])))
+            idnprSet = list(filter(None, set(links_expert[r_id])))
+            if (len(idnprSet) != 0):
+                idnpr[r_id] = idnprSet
+
+            nidnprSet = list(filter(None, set(low_level.keys()) - set(links_expert[r_id])))
+            if (len(nidnprSet) != 0):
+                nidnpr[r_id] = nidnprSet
             continue
 
         # Calculate indicated + predicted by taking intersection of values in expert and values in calculated links
