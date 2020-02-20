@@ -236,20 +236,20 @@ def get_links_expert(expert_path: str) -> Dict[str, List[str]]:
     # Fill dictionary
     for (r_id, text) in links_expert.items():
         # Create list of seperate links
-        strList = text.split(',')
+        str_list = text.split(',')
 
         # Remove leading and trailing whitespace of all list items
-        for i in range(0, len(strList)):
-            strList[i] = strList[i].strip()
+        for i in range(0, len(str_list)):
+            str_list[i] = str_list[i].strip()
 
         # Set dictionary value equal to list
-        links_expert[r_id] = strList
+        links_expert[r_id] = str_list
 
     # Return the resulting dictionary
     return links_expert
 
 
-def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert: Dict[str, List[str]], low_level: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]):
+def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert: Dict[str, List[str]], low_level: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> Tuple[Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]], Dict[str, List[str]]]:
     """
     Performs evaluation on indicated and predicted links
     First is Indicated + Predicted, Second is Indicated + Not Predicted, Third is Not Indicated + Predicted, Fourth is Not Indicated + Not Predicted
@@ -299,7 +299,8 @@ def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert:
     # Return the 4 resulting dictionaries
     return (idpr, idnpr, nidpr, nidnpr)
 
-def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]], nidpr: Dict[str, List[str]], nidnpr: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> (int, int, int, int):
+
+def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]], nidpr: Dict[str, List[str]], nidnpr: Dict[str, List[str]], high_level: Dict[str, List[str]]) -> Tuple[int, int, int, int]:
     """
     Computes counts of the dictionary used in evaluation
     """
