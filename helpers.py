@@ -95,10 +95,16 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def __add_to_dict(dict: Dict[str, List[str]], key:str, value: List[str]):
+    """
+    Adds value to key in dictionary is value is not empty
+    """
     if (len(value) != 0):
         dict[key] = value
 
 def __compute_total_values_dict(dict: Dict[str, List[str]]) -> int:
+    """
+    Computes the sum of the length of all the values in the dictionary
+    """
     return sum([len(list_element) for list_element in dict.values()])
 
 
