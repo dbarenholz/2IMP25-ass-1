@@ -1,2 +1,5 @@
+# commands that can be copy-pasted for building and running the docker container.
+# added for easy of use
+
 docker build -t 2imp25-assignment-1 ./
 docker run --rm -v "$pwd\dataset-1:/input" -v "$pwd\output:/output" 2imp25-assignment-1 1
