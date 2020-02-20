@@ -272,7 +272,7 @@ def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert:
     idpr, idnpr, nidpr, nidnpr = {}, {}, {}, {}
 
     # Loop over all known high_level requirements
-    for (r_id) in high_level.keys():
+    for r_id in high_level.keys():
         # Calculate indicated + predicted by taking intersection of values in expert and values in calculated links
         __add_to_dict(idpr, r_id, list(filter(None, set(links_expert[r_id]).intersection(set(linked_requirements[r_id])))))
 
