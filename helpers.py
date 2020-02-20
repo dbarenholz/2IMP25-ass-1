@@ -94,6 +94,14 @@ def __get_cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b)))
 
 
+def __add_to_dict(dict: Dict[str, List[str]], key:str, value: List[str]):
+    if (len(value) != 0):
+        dict[key] = value
+
+def __compute_total_values_dict(dict: Dict[str, List[str]]) -> int:
+    return sum([len(list_element) for list_element in dict.values()])
+
+
 # === Public Methods === #
 
 
@@ -259,54 +267,17 @@ def get_evaluation_sets(linked_requirements: Dict[str, List[str]], links_expert:
 
     # Loop over all known high_level requirements
     for (r_id) in high_level.keys():
-        # High level key cannot be found in either indicated or predicted links
-        if (r_id not in links_expert.keys() and r_id not in linked_requirements.keys()):
-            nidnprSet = list(filter(None, set(low_level.keys())))
-            if (len(nidnprSet) != 0):
-                nidnpr[r_id] = nidnprSet
-            continue
-
-        # High level key cannot be found in indicated links but is present in predicted links
-        if (r_id not in links_expert.keys()):
-            nidprSet = list(filter(None, set(linked_requirements[r_id])))
-            if (len(nidprSet) != 0):
-                nidpr[r_id] = nidprSet
-
-            nidnprSet = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id])))
-            if (len(nidnprSet) != 0):
-                nidnpr[r_id] = nidnprSet
-            continue
-
-        # High level key cannot be found in predicted links but is present in indicated links
-        if (r_id not in linked_requirements.keys()):
-            idnprSet = list(filter(None, set(links_expert[r_id])))
-            if (len(idnprSet) != 0):
-                idnpr[r_id] = idnprSet
-
-            nidnprSet = list(filter(None, set(low_level.keys()) - set(links_expert[r_id])))
-            if (len(nidnprSet) != 0):
-                nidnpr[r_id] = nidnprSet
-            continue
-
         # Calculate indicated + predicted by taking intersection of values in expert and values in calculated links
-        idprSet = list(filter(None, set(links_expert[r_id]).intersection(set(linked_requirements[r_id]))))
-        if (len(idprSet) != 0):
-            idpr[r_id] = idprSet
+        __add_to_dict(idpr, r_id, list(filter(None, set(links_expert[r_id]).intersection(set(linked_requirements[r_id])))))
 
         # Calculate indicated + not predicted by removing predicted from indicated
-        idnprSet = list(filter(None, set(links_expert[r_id]) - set(linked_requirements[r_id])))
-        if (len(idnprSet) != 0):
-            idnpr[r_id] = idnprSet
+        __add_to_dict(idnpr, r_id, list(filter(None, set(links_expert[r_id]) - set(linked_requirements[r_id]))))
 
         # Calculate not indicated + predicted by removing indicated from predicted
-        nidprSet = list(filter(None, set(linked_requirements[r_id]) - set(links_expert[r_id])))
-        if (len(nidprSet) != 0):
-            nidpr[r_id] = nidprSet
+        __add_to_dict(nidpr, r_id, list(filter(None, set(linked_requirements[r_id]) - set(links_expert[r_id]))))
 
         # Calculate not indicated + not predicted by removing union of values in expert and values in calculted links from the set of all low level keys
-        nidnprSet = list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id]).union(set(links_expert[r_id]))))
-        if (len(nidnprSet) != 0):
-            nidnpr[r_id] = nidnprSet
+        __add_to_dict(nidnpr, r_id, list(filter(None, set(low_level.keys()) - set(linked_requirements[r_id]).union(set(links_expert[r_id])))))
 
     # Return the 4 resulting dictionaries
     return (idpr, idnpr, nidpr, nidnpr)
@@ -316,22 +287,5 @@ def get_evaluation_counts(idpr: Dict[str, List[str]], idnpr: Dict[str, List[str]
     """
     Computes counts of the dictionary used in evaluation
     """
-    # Initialize counts
-    idprCount, idnprCount, nidprCount, nidnprCount = 0, 0, 0, 0
-
-    # Loop over all known high_level requirements adding the length of the list to corresponding count if the requirement exists in the corresponding dictionary
-    for (r_id) in high_level.keys():
-        if (r_id in idpr.keys()):
-            idprCount = idprCount + len(idpr[r_id])
-
-        if (r_id in idnpr.keys()):
-            idnprCount = idnprCount + len(idnpr[r_id])
-
-        if (r_id in nidpr.keys()):
-            nidprCount = nidprCount + len(nidpr[r_id])
-
-        if (r_id in nidnpr.keys()):
-            nidnprCount = nidnprCount + len(nidnpr[r_id])
-
     # Return the 4 resulting counts
-    return (idprCount, idnprCount, nidprCount, nidnprCount)
+    return (__compute_total_values_dict(idpr), __compute_total_values_dict(idnpr), __compute_total_values_dict(nidpr), __compute_total_values_dict(nidnpr))
